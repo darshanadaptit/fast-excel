@@ -1,9 +1,11 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace AdaptIT\FastExcel;
 
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use OpenSpout\Common\Type;
+use OpenSpout\Reader\Common\Creator\ReaderEntityFactory;
 use OpenSpout\Reader\SheetInterface;
 
 /**
@@ -31,9 +33,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
+     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -56,9 +58,9 @@ trait Importable
      * @param string        $path
      * @param callable|null $callback
      *
+     * @throws \OpenSpout\Common\Exception\IOException
      * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Reader\Exception\ReaderNotOpenedException
-     * @throws \OpenSpout\Common\Exception\IOException
      *
      * @return Collection
      */
@@ -82,27 +84,21 @@ trait Importable
     /**
      * @param $path
      *
-     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      * @throws \OpenSpout\Common\Exception\IOException
+     * @throws \OpenSpout\Common\Exception\UnsupportedTypeException
      *
      * @return \OpenSpout\Reader\ReaderInterface
      */
     private function reader($path)
     {
-        if (Str::endsWith($path, 'csv')) {
-            $options = new \OpenSpout\Reader\CSV\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\CSV\Reader($options);
-        } elseif (Str::endsWith($path, 'ods')) {
-            $options = new \OpenSpout\Reader\ODS\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\ODS\Reader($options);
+        if (Str::endsWith($path, Type::CSV)) {
+            $reader = ReaderEntityFactory::createCSVReader();
+        } elseif (Str::endsWith($path, Type::ODS)) {
+            $reader = ReaderEntityFactory::createODSReader();
         } else {
-            $options = new \OpenSpout\Reader\XLSX\Options();
-            $this->setOptions($options);
-            $reader = new \OpenSpout\Reader\XLSX\Reader($options);
+            $reader = ReaderEntityFactory::createXLSXReader();
         }
-
+        $this->setOptions($reader);
         /* @var \OpenSpout\Reader\ReaderInterface $reader */
         $reader->open($path);
 
@@ -120,14 +116,10 @@ trait Importable
 
         foreach ($array as $row => $columns) {
             foreach ($columns as $column => $value) {
-                data_set(
-                    $collection,
-                    implode('.', [
-                        $column,
-                        $row,
-                    ]),
-                    $value
-                );
+                data_set($collection, implode('.', [
+                    $column,
+                    $row,
+                ]), $value);
             }
         }
 
@@ -187,8 +179,6 @@ trait Importable
     {
         foreach ($values as &$value) {
             if ($value instanceof \DateTime) {
-                $value = $value->format('Y-m-d H:i:s');
-            } elseif ($value instanceof \DateTimeImmutable) {
                 $value = $value->format('Y-m-d H:i:s');
             } elseif ($value) {
                 $value = (string) $value;

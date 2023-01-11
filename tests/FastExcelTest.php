@@ -1,11 +1,11 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel\Tests;
+namespace AdaptIT\FastExcel\Tests;
 
 use OpenSpout\Common\Entity\Style\Color;
-use OpenSpout\Common\Entity\Style\Style;
-use Rap2hpoutre\FastExcel\FastExcel;
-use Rap2hpoutre\FastExcel\SheetCollection;
+use OpenSpout\Writer\Common\Creator\Style\StyleBuilder;
+use AdaptIT\FastExcel\FastExcel;
+use AdaptIT\FastExcel\SheetCollection;
 
 /**
  * Class FastExcelTest.
@@ -204,13 +204,10 @@ class FastExcelTest extends TestCase
     public function testExportWithHeaderStyle()
     {
         $original_collection = $this->collection();
-
-        $style = new Style();
-        $style->setFontBold();
-        $style->setFontSize(15);
-        $style->setFontColor(Color::BLUE);
-        $style->setShouldWrapText();
-        $style->setBackgroundColor(Color::YELLOW);
+        $style = (new StyleBuilder())
+           ->setFontBold()
+           ->setBackgroundColor(Color::YELLOW)
+           ->build();
         $file = __DIR__.'/test-header-style.xlsx';
         (new FastExcel(clone $original_collection))
             ->headerStyle($style)

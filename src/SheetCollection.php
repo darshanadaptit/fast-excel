@@ -1,6 +1,6 @@
 <?php
 
-namespace Rap2hpoutre\FastExcel;
+namespace AdaptIT\FastExcel;
 
 use Illuminate\Support\Collection;
 
